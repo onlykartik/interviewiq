@@ -7,7 +7,6 @@ const auth = require('../middleware/auth');
 router.get('/posts', auth , async (req, res) => {
     try {
             const userId = req.user.id;
-            console.log('userId from /posts', userId)
         const query = `
             SELECT
                 p.id,

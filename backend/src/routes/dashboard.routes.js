@@ -74,4 +74,70 @@ router.get('/upcoming', auth, async (req, res) => {
     }
 });
 
+const { generateDailyDashboard } = require('../services/dashboard.ai.service');
+
+router.get('/ai-recommendation', auth, async (req, res) => {
+    const userId = req.user.id;
+    const data = await generateDailyDashboard(userId);
+    res.json({
+        success: true,
+        data
+    });
+});
+
+const { recordRefresh,canRefreshRecommendation, getDashboardRecommendations } = require('../services/dashboard.ai.service');
+
+/**
+ * GET dashboard recommendations
+ */
+router.get('/recommendations', auth, async (req, res) => {
+    const data = await getDashboardRecommendations(req.user.id);
+
+    res.json({
+        success: true,
+        data: data.topics,
+        remaining: data.remaining
+    });
+});
+
+const {
+    generateRecommendedTopics
+} = require('../services/ai.recommendation.service');
+
+/**
+ * POST refresh recommendations
+ */
+// routes/dashboard.routes.js
+// routes/dashboard.routes.js
+router.post('/recommendations/refresh', auth, async (req, res) => {
+    const userId = req.user.id;
+
+    const limit = await canRefreshRecommendation(userId);
+
+    console.log('IN /recommendations/refresh', limit)
+
+    if (!limit.allowed) {
+        return res.status(429).json({
+        success: false,
+        message: 'Refresh limit reached',
+        remaining: 0
+        });
+    }
+
+    
+    const topics = await generateRecommendedTopics(userId);
+
+    // Record refresh
+    await recordRefresh(userId);
+
+    // 🔥 Recalculate remaining AFTER increment
+    const updatedLimit = await canRefreshRecommendation(userId);
+
+    res.json({
+        success: true,
+        data: topics,
+        remaining: updatedLimit.remaining
+    });
+});
+
 module.exports = router;

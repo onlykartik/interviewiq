@@ -24,8 +24,6 @@ router.post('/', async (req, res) => {
     try {
         const { name } = req.body;
 
-        console.log(req.body)
-
         // 1. Basic validation
         if (!name || name.trim() === '') {
         return res.status(400).json({

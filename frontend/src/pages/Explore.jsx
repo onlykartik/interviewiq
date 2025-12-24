@@ -56,8 +56,18 @@ export default function Explore() {
                 {post.is_admin ? 'InterviewIQ Admin' : post.user_name || 'Anonymous'}
             </strong>
 
-            <p>{post.content}</p>
+            
+            <pre
+                style={{
+                    whiteSpace: 'pre-wrap',   // ✅ wraps text
+                    wordBreak: 'break-word',  // ✅ long words wrap
+                    overflowWrap: 'anywhere'  // ✅ safety
+                }}
+                >
+                {post.content}
+            </pre>
 
+            
             <button onClick={() => handleLike(post.id)}>
                 {post.liked ? '❤️' : '🤍'} {post.likes}
             </button>

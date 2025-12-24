@@ -8,6 +8,9 @@ import Interviews from './pages/Interviews';
 import Prepare from './pages/Prepare';
 import Explore from './pages/Explore';
 import Profile from './pages/Profile';
+import Quiz from './pages/Quiz';
+import TodayQuiz from './pages/TodayQuiz';
+
 import InterviewDetail from './pages/InterviewDetail';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -93,6 +96,15 @@ function App() {
               }
             />
 
+            <Route
+              path="/quiz"
+              element={
+                <ProtectedRoute>
+                  <Quiz />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/quiz/today" element={<ProtectedRoute> <TodayQuiz /> </ProtectedRoute>} />
             <Route
               path="/explore"
               element={

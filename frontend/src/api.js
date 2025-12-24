@@ -31,16 +31,6 @@ export async function getInterviewQuestions(interviewId) {
 }
 
 export async function addQuestion(payload) {
-
-/*    
-    const res = await fetch(`${API_BASE}/questions`, {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-*/
     const res = await fetch(`${API_BASE}/questions`, {
     method: 'POST',
     headers: getHeaders(),
@@ -68,11 +58,13 @@ export async function getDashboardUpcoming() {
     return res.json();
 }
 
-export async function signup(name,email, password) {
+export async function signup(name, email, password) {
     const res = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ name , email, password })
+        headers: {
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
     });
 
     return res.json();
@@ -178,5 +170,37 @@ export async function updateName(name) {
         headers: getHeaders(),
         body: JSON.stringify({ name })
     });
+    return res.json();
+}
+
+export async function getDailyRecommendation() {
+    console.log('Front end called for recommendation...')
+    const res = await fetch(`${API_BASE}/dashboard/ai-recommendation`, {
+        headers: getHeaders()
+    });
+    return res.json();
+}
+
+export async function getDashboardRecommendations() {
+    const res = await fetch(`${API_BASE}/dashboard/recommendations`, {
+        headers: getHeaders()
+    });
+    const data = await res.json();
+    return data;
+}
+
+export async function getTodayQuiz() {
+    const res = await fetch(`${API_BASE}/quiz/today`, {
+        headers: getHeaders()
+    });
+    return res.json();
+}
+
+export async function refreshRecommendations() {
+    const res = await fetch(`${API_BASE}/dashboard/recommendations/refresh`, {
+        method: 'POST',
+        headers: getHeaders()
+    });
+
     return res.json();
 }

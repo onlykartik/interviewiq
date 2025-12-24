@@ -7,7 +7,6 @@ const auth = require('../middleware/auth');
 router.post('/', auth, async (req, res) => {
     try {
         const userId = req.user.id; // ✅ FROM JWT
-        console.log('User from JWT:', req.user);
 
         const { company_id, role, interview_date, result } = req.body;
         // Validation
