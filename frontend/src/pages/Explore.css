@@ -1,0 +1,174 @@
+/* Page wrapper */
+.explore-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Post card */
+.post-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+  background: #fff;
+}
+
+/* Post header */
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.post-author {
+  font-weight: 600;
+}
+
+.admin-badge {
+  font-size: 12px;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Post content */
+.post-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  margin-bottom: 12px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Actions */
+.post-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.like-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Meta */
+.post-meta {
+  font-size: 12px;
+  color: #777;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .explore-container {
+    padding: 12px;
+  }
+
+  .post-card {
+    padding: 12px;
+  }
+
+  /* Limit post content height */
+.post-content {
+  max-height: 140px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Expanded post */
+.post-content.expanded {
+  max-height: 2000px;
+}
+
+/* Read more button */
+.read-more {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* Comments toggle */
+.comments-toggle {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+/* Comment container */
+.comments-wrapper {
+  margin-top: 8px;
+  padding-left: 8px;
+  border-left: 2px solid #eee;
+}
+
+/* Post content base */
+.post-content {
+  position: relative;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  transition: max-height 0.25s ease;
+}
+
+/* Collapsed long post */
+.post-content.collapsed {
+  max-height: 160px;
+  overflow: hidden;
+}
+
+/* Fade only when collapsed */
+.post-content.collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 1)
+  );
+  pointer-events: none;
+}
+
+/* Expanded post */
+.post-content.expanded {
+  max-height: none;
+}
+
+/* Read more button */
+.read-more {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.post-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+
+}

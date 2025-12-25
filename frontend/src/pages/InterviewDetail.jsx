@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getInterviewQuestions, addQuestion } from '../api';
+import Card from '../components/Card';
 
 export default function InterviewDetail() {
     const { id } = useParams();
@@ -8,6 +9,8 @@ export default function InterviewDetail() {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const [showForm, setShowForm] = useState(false);
 
     const [form, setForm] = useState({
         question_text: '',
@@ -20,7 +23,7 @@ export default function InterviewDetail() {
     async function loadQuestions() {
         try {
         const response = await getInterviewQuestions(id);
-        setQuestions(response.data);
+        setQuestions(response.data || []);
         } catch {
         setError('Unable to load questions');
         } finally {
@@ -58,86 +61,172 @@ export default function InterviewDetail() {
             user_answer: ''
         });
 
+        setShowForm(false);
         loadQuestions();
         } catch {
         alert('Failed to add question');
         }
     }
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <p>Loading interview questions...</p>;
     if (error) return <p>{error}</p>;
 
     return (
         <div>
-        <h2>Interview Questions</h2>
+        <h1 style={{ marginBottom: '16px' }}>Interview Questions</h1>
+
+        {/* TOGGLE BUTTON */}
+        <button
+            onClick={() => setShowForm(!showForm)}
+            style={{ marginBottom: '16px' }}
+        >
+            {showForm ? '✖ Hide Question Form' : '+ Add Interview Question'}
+        </button>
 
         {/* ADD QUESTION FORM */}
-        <form onSubmit={handleSubmit} style={{ marginBottom: '24px' }}>
-            <textarea
-            name="question_text"
-            placeholder="Interview question (required)"
-            value={form.question_text}
-            onChange={handleChange}
-            rows="3"
-            style={{ width: '100%', marginBottom: '8px' }}
-            />
+        {showForm && (
+            <Card>
+            <form onSubmit={handleSubmit}>
+                <textarea
+                name="question_text"
+                placeholder="Interview question (required)"
+                value={form.question_text}
+                onChange={handleChange}
+                rows="3"
+                style={styles.input}
+                />
 
-            <input
-            name="topic"
-            placeholder="Topic (optional)"
-            value={form.topic}
-            onChange={handleChange}
-            style={{ width: '100%', marginBottom: '8px' }}
-            />
+                <input
+                name="topic"
+                placeholder="Topic (optional)"
+                value={form.topic}
+                onChange={handleChange}
+                style={styles.input}
+                />
 
-            <input
-            name="difficulty"
-            placeholder="Difficulty (optional)"
-            value={form.difficulty}
-            onChange={handleChange}
-            style={{ width: '100%', marginBottom: '8px' }}
-            />
+                <select
+                name="difficulty"
+                value={form.difficulty}
+                onChange={handleChange}
+                style={styles.input}
+                >
+                <option value="">Difficulty (optional)</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+                </select>
 
-            <input
-            name="round"
-            placeholder="Round (optional)"
-            value={form.round}
-            onChange={handleChange}
-            style={{ width: '100%', marginBottom: '8px' }}
-            />
+                <input
+                name="round"
+                placeholder="Round (Technical / HR / Design)"
+                value={form.round}
+                onChange={handleChange}
+                style={styles.input}
+                />
 
-            <textarea
-            name="user_answer"
-            placeholder="Your answer (optional)"
-            value={form.user_answer}
-            onChange={handleChange}
-            rows="2"
-            style={{ width: '100%', marginBottom: '8px' }}
-            />
+                <textarea
+                name="user_answer"
+                placeholder="Your answer (optional)"
+                value={form.user_answer}
+                onChange={handleChange}
+                rows="3"
+                style={styles.input}
+                />
 
-            <button type="submit">Add Question</button>
-        </form>
+                <button type="submit">Save Question</button>
+            </form>
+            </Card>
+        )}
 
         {/* QUESTIONS LIST */}
-        {questions.length === 0 && <p>No questions yet.</p>}
-
-        <ul>
-            {questions.map((q) => (
-            <li key={q.id} style={{ marginBottom: '12px' }}>
-                <strong>{q.question_text}</strong>
-                <div style={{ fontSize: '14px', color: '#555' }}>
-                {q.topic && <>Topic: {q.topic} · </>}
-                {q.difficulty && <>Difficulty: {q.difficulty} · </>}
-                {q.round && <>Round: {q.round}</>}
+        {questions.length === 0 ? (
+            <Card>
+            <p>No questions added yet.</p>
+            <p>Add questions to unlock AI recommendations and quizzes.</p>
+            </Card>
+        ) : (
+            questions.map((q, idx) => (
+            <Card key={q.id}>
+                <div style={styles.header}>
+                <strong>Question {idx + 1}</strong>
+                {q.difficulty && (
+                    <span style={difficultyBadge(q.difficulty)}>
+                    {q.difficulty}
+                    </span>
+                )}
                 </div>
-                {q.user_answer && (
-                <div>
-                    <em>Your answer:</em> {q.user_answer}
+
+                <pre style={styles.text}>{q.question_text}</pre>
+
+                {(q.topic || q.round) && (
+                <div style={styles.meta}>
+                    {q.topic && <span>Topic: {q.topic}</span>}
+                    {q.round && <span>Round: {q.round}</span>}
                 </div>
                 )}
-            </li>
-            ))}
-        </ul>
+
+                {q.user_answer && (
+                <div style={{ marginTop: '10px' }}>
+                    <strong>Your Answer</strong>
+                    <pre style={styles.answer}>{q.user_answer}</pre>
+                </div>
+                )}
+            </Card>
+            ))
+        )}
         </div>
     );
-}
+    }
+
+    /* ---------- Styles ---------- */
+
+    const styles = {
+    input: {
+        width: '100%',
+        marginBottom: '10px',
+        padding: '8px'
+    },
+    header: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginBottom: '8px'
+    },
+    text: {
+        whiteSpace: 'pre-wrap',
+        background: '#f8fafc',
+        padding: '8px',
+        borderRadius: '6px'
+    },
+    answer: {
+        whiteSpace: 'pre-wrap',
+        background: '#eef2ff',
+        padding: '8px',
+        borderRadius: '6px',
+        marginTop: '6px'
+    },
+    meta: {
+        fontSize: '12px',
+        color: '#64748b',
+        display: 'flex',
+        gap: '12px',
+        marginTop: '6px'
+    }
+};
+
+const difficultyBadge = (difficulty) => ({
+    padding: '4px 10px',
+    borderRadius: '999px',
+    fontSize: '12px',
+    background:
+        difficulty === 'Hard'
+        ? '#fee2e2'
+        : difficulty === 'Medium'
+        ? '#e0f2fe'
+        : '#dcfce7',
+    color:
+        difficulty === 'Hard'
+        ? '#991b1b'
+        : difficulty === 'Medium'
+        ? '#075985'
+        : '#166534'
+});

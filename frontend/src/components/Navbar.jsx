@@ -28,8 +28,9 @@ export default function Navbar() {
     nav: {
         display: 'flex',
         justifyContent: 'space-between',
+        alignItems: 'center',
         padding: '12px 16px',
-        borderBottom: '1px solid #ddd',
+        borderBottom: '1px solid #e5e7eb',
         flexWrap: 'wrap'
     },
     logo: {
@@ -39,12 +40,13 @@ export default function Navbar() {
     links: {
         display: 'flex',
         gap: '12px',
-        flexWrap: 'wrap',
-        alignItems: 'center'
+        flexWrap: 'wrap',   // 🔥 mobile safe
+        marginTop: '8px'
     },
     link: {
         textDecoration: 'none',
-        color: '#333'
+        color: '#374151',
+        fontSize: '14px'
     },
     logout: {
         background: 'none',

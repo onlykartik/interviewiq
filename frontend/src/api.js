@@ -204,3 +204,18 @@ export async function refreshRecommendations() {
 
     return res.json();
 }
+
+export async function getExplorePostsPagenation(cursor = null) {
+    const params = new URLSearchParams();
+    if (cursor) params.append('cursor', cursor);
+    params.append('limit', 5);
+
+    const res = await fetch(
+        `${API_BASE}/explore/postspagenation?${params.toString()}`,
+        { headers: getHeaders() }
+    );
+
+    console.log(res)
+
+    return res.json();
+}

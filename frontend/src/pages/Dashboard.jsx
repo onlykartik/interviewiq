@@ -6,6 +6,7 @@ import {
   getDashboardRecommendations,
   refreshRecommendations
 } from '../api';
+import Card from '../components/Card';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -49,82 +50,122 @@ useEffect(() => {
 }, []);
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div>
       <h1>Dashboard</h1>
 
       {/* Upcoming Interviews */}
-      <section style={{ marginTop: '30px' }}>
-        <h2>Upcoming Interviews</h2>
-
-        {upcoming.length === 0 ? (
-          <p>
-            No upcoming interviews.{' '}
-            <button onClick={() => navigate('/interviews/new')}>
-              Add Interview
-            </button>
-          </p>
-        ) : (
-          upcoming.map(i => (
-            <div key={i.id} style={{ marginBottom: '10px' }}>
-              <strong>{i.company_name}</strong> – {i.role}
-              <br />
-              <small>{i.interview_date}</small>
-            </div>
-          ))
-        )}
-      </section>
+<Card title="Upcoming Interviews">
+  {upcoming.length === 0 ? (
+    <p>
+      No upcoming interviews.{' '}
+      <button onClick={() => navigate('/interviews/new')}>
+        Add Interview
+      </button>
+    </p>
+  ) : (
+    upcoming.map(i => (
+      <div
+        key={i.id}
+        style={{
+          marginBottom: '10px',
+          paddingBottom: '6px',
+          borderBottom: '1px solid #eee'
+        }}
+      >
+        <strong>{i.company_name}</strong> – {i.role}
+        <br />
+        <small>{i.interview_date}</small>
+      </div>
+    ))
+  )}
+</Card>
 
       {/* Stats */}
-      <section style={{ marginTop: '30px' }}>
-        <h2>Your Stats</h2>
-        {stats && (
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <div>Interviews: {stats.interviews}</div>
-            <div>Questions: {stats.questions}</div>
-            <div>Companies: {stats.companies}</div>
-          </div>
-        )}
-      </section>
+<Card title="Your Stats">
+  {stats && (
+    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+      <div style={statBox}>
+        <div style={statValue}>{stats.interviews}</div>
+        <div>Interviews</div>
+      </div>
+      <div style={statBox}>
+        <div style={statValue}>{stats.questions}</div>
+        <div>Questions</div>
+      </div>
+      <div style={statBox}>
+        <div style={statValue}>{stats.companies}</div>
+        <div>Companies</div>
+      </div>
+    </div>
+  )}
+</Card>
 
       {/* Recommendations */}
-      <section style={{ marginTop: '30px' }}>
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          Recommended for You
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing || remainingRefresh === 0}
-            title="Refresh recommendations"
-            style={{
-              cursor:
-                refreshing || remainingRefresh === 0
-                  ? 'not-allowed'
-                  : 'pointer'
-            }}
-          >
-            {refreshing ? '⏳' : '🔄'}
-          </button>
-        </h2>
+<Card
+  title={
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      Recommended for You
+      <button
+        onClick={handleRefresh}
+        disabled={refreshing || remainingRefresh === 0}
+        title="Refresh recommendations"
+        style={{
+          cursor:
+            refreshing || remainingRefresh === 0
+              ? 'not-allowed'
+              : 'pointer'
+        }}
+      >
+        {refreshing ? '⏳' : '🔄'}
+      </button>
+    </div>
+  }
+>
+  <small>Refreshes left today: {remainingRefresh}</small>
 
-        <small>Refreshes left today: {remainingRefresh}</small>
+  {stats && stats.questions === 0 && (
+    <p>Add interview questions to unlock recommendations.</p>
+  )}
 
-        {stats && stats.questions === 0 && (
-          <p>Add interview questions to unlock recommendations.</p>
-        )}
+  {recommendation.length > 0 && (
+    <>
+      <ul>
+        {recommendation.map((topic, idx) => (
+          <li key={idx}>{topic}</li>
+        ))}
+      </ul>
 
-        {recommendation.length > 0 && (
-          <>
-            <ul>
-              {recommendation.map((topic, idx) => (
-                <li key={idx}>{topic}</li>
-              ))}
-            </ul>
-
-            <button onClick={() => navigate('/quiz/today')}>
-              Take Today’s Quiz
-            </button>
-          </>
-        )}
-      </section>
+      <button
+        style={{
+          marginTop: '12px',
+          padding: '8px 14px',
+          borderRadius: '6px',
+          border: 'none',
+          background: '#2563eb',
+          color: '#fff',
+          cursor: 'pointer'
+        }}
+        onClick={() => navigate('/quiz/today')}
+      >
+        Take Today’s Quiz
+      </button>
+    </>
+  )}
+</Card>
     </div>
   );
 }
+
+const statBox = {
+  flex: '1',
+  minWidth: '90px',
+  padding: '12px',
+  background: '#f8fafc',
+  borderRadius: '6px',
+  textAlign: 'center'
+};
+
+const statValue = {
+  fontSize: '20px',
+  fontWeight: 'bold'
+};

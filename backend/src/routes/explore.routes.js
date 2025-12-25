@@ -177,4 +177,65 @@ router.post('/posts/:id/comments', auth, async (req, res) => {
         res.status(500).json({ success: false });
     }
 });
+
+// GET /api/explore/posts
+router.get('/postspagenation', auth, async (req, res) => {
+    console.log('Hitted /posts')
+    try {
+        const limit = Number(req.query.limit) || 10;
+        const cursor = req.query.cursor; // ISO timestamp
+
+        const values = [];
+        let whereClause = '';
+
+        if (cursor) {
+        values.push(cursor);
+        whereClause = `WHERE p.created_at < $${values.length}`;
+        }
+
+        values.push(limit);
+
+        console.log(values, limit)
+
+        const query = `
+        SELECT
+            p.id,
+            p.content,
+            p.created_at,
+            p.is_admin,
+            u.name AS user_name,
+            COUNT(pl.id) AS likes,
+            BOOL_OR(pl.user_id = $${values.length + 1}) AS liked
+        FROM posts p
+        LEFT JOIN users u ON u.id = p.user_id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        ${whereClause}
+        GROUP BY p.id, u.name
+        ORDER BY p.created_at DESC
+        LIMIT $${values.length}
+        `;
+
+        const result = await pool.query(query, [
+        ...values,
+        req.user.id
+        ]);
+
+        const posts = result.rows;
+
+        const nextCursor =
+        posts.length > 0
+            ? posts[posts.length - 1].created_at
+            : null;
+
+        res.json({
+        success: true,
+        data: posts,
+        nextCursor
+        });
+    } catch (err) {
+        console.error('Explore fetch error:', err);
+        res.status(500).json({ success: false });
+    }
+});
+
 module.exports = router;
