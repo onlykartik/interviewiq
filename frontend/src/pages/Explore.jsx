@@ -2,198 +2,162 @@ import { useEffect, useRef, useState } from 'react';
 import { getExplorePostsPagenation, toggleLike } from '../api';
 import CreatePost from '../components/CreatePost';
 import Comments from '../components/Comments';
+import { Heart, MessageCircle, Clock, ShieldCheck, User as UserIcon } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './Explore.css';
 
 export default function Explore() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-  const [expandedPosts, setExpandedPosts] = useState({});
-  const [openComments, setOpenComments] = useState({});
-  const [overflowingPosts, setOverflowingPosts] = useState({});
+    const [expandedPosts, setExpandedPosts] = useState({});
+    const [openComments, setOpenComments] = useState({});
+    const [overflowingPosts, setOverflowingPosts] = useState({});
 
-  const [nextCursor, setNextCursor] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
+    const [nextCursor, setNextCursor] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
 
-  const contentRefs = useRef({});
-  const sentinelRef = useRef(null);
+    const contentRefs = useRef({});
+    const sentinelRef = useRef(null);
 
-  function toggleExpand(postId) {
-    setExpandedPosts(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
-  }
+    function toggleExpand(postId) {
+        setExpandedPosts(prev => ({ ...prev, [postId]: !prev[postId] }));
+    }
 
-  function toggleComments(postId) {
-    setOpenComments(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
-  }
+    function toggleComments(postId) {
+        setOpenComments(prev => ({ ...prev, [postId]: !prev[postId] }));
+    }
 
-  /* ---------------- FETCHING ---------------- */
+    async function loadInitialPosts() {
+        setLoading(true);
+        const res = await getExplorePostsPagenation();
+        setPosts(res.data || []);
+        setNextCursor(res.nextCursor);
+        setHasMore(Boolean(res.nextCursor));
+        setLoading(false);
+    }
 
-  async function loadInitialPosts() {
-    setLoading(true);
-    const res = await getExplorePostsPagenation();
-    console.log(res.data)
-    setPosts(res.data || []);
-    setNextCursor(res.nextCursor);
-    setHasMore(Boolean(res.nextCursor));
-    setLoading(false);
-  }
+    async function loadMorePosts() {
+        if (!hasMore || loadingMore) return;
+        setLoadingMore(true);
+        const res = await getExplorePostsPagenation(nextCursor);
+        setPosts(prev => [...prev, ...(res.data || [])]);
+        setNextCursor(res.nextCursor);
+        setHasMore(Boolean(res.nextCursor));
+        setLoadingMore(false);
+    }
 
-  async function loadMorePosts() {
-    if (!hasMore || loadingMore) return;
+    async function handleLike(postId) {
+        setPosts(posts =>
+        posts.map(p =>
+            p.id === postId
+            ? { ...p, liked: !p.liked, likes: p.liked ? Number(p.likes) - 1 : Number(p.likes) + 1 }
+            : p
+        )
+        );
+        await toggleLike(postId);
+    }
 
-    setLoadingMore(true);
+    useEffect(() => { loadInitialPosts(); }, []);
 
-    const res = await getExplorePostsPagenation(nextCursor);
-    setPosts(prev => [...prev, ...(res.data || [])]);
-    setNextCursor(res.nextCursor);
-    setHasMore(Boolean(res.nextCursor));
+    useEffect(() => {
+        const overflowMap = {};
+        posts.forEach(post => {
+        const el = contentRefs.current[post.id];
+        if (el) overflowMap[post.id] = el.scrollHeight > el.clientHeight;
+        });
+        setOverflowingPosts(overflowMap);
+    }, [posts]);
 
-    setLoadingMore(false);
-  }
+    useEffect(() => {
+        if (!sentinelRef.current) return;
+        const observer = new IntersectionObserver(
+        entries => { if (entries[0].isIntersecting) loadMorePosts(); },
+        { threshold: 1 }
+        );
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [nextCursor, hasMore]);
 
-  async function handleLike(postId) {
-    setPosts(posts =>
-      posts.map(p =>
-        p.id === postId
-          ? {
-              ...p,
-              liked: !p.liked,
-              likes: p.liked
-                ? Number(p.likes) - 1
-                : Number(p.likes) + 1
-            }
-          : p
-      )
-    );
+    if (loading) return <div className="loading-state">Loading explore feed...</div>;
 
-    await toggleLike(postId);
-  }
+    return (
+        <div className="explore-container">
+        <header className="explore-header">
+            <h1 className="explore-title">Community Feed</h1>
+            <p className="explore-subtitle">Learn from others' interview experiences</p>
+        </header>
 
-  /* ---------------- EFFECTS ---------------- */
+        <CreatePost onPostCreated={loadInitialPosts} />
 
-  useEffect(() => {
-    loadInitialPosts();
-  }, []);
+        <div className="posts-list">
+            {posts.map(post => (
+            <div key={post.id} className="post-card">
+                {/* Header */}
+                <div className="post-header">
+                <div className="author-info">
+                    <div className={`avatar ${post.is_admin ? 'admin-avatar' : ''}`}>
+                    {post.is_admin ? <ShieldCheck size={18} /> : <UserIcon size={18} />}
+                    </div>
+                    <div className="author-details">
+                    <span className="post-author">
+                        {post.is_admin ? 'InterviewIQ Admin' : post.user_name || 'Anonymous'}
+                    </span>
+                    <span className="post-time">
+                        <Clock size={12} /> {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                    </div>
+                </div>
+                {post.is_admin && <span className="admin-badge">Staff</span>}
+                </div>
 
-  // Overflow detection for Read More
-  useEffect(() => {
-    const overflowMap = {};
+                {/* Content */}
+                <div 
+                ref={el => (contentRefs.current[post.id] = el)} // 👈 Add this back!
+                className={`post-content ${overflowingPosts[post.id] && !expandedPosts[post.id] ? 'collapsed' : ''} ${expandedPosts[post.id] ? 'expanded' : ''}`}
+                >
+                <ReactMarkdown>{post.content}</ReactMarkdown>
+                </div>
 
-    posts.forEach(post => {
-      const el = contentRefs.current[post.id];
-      if (el) {
-        overflowMap[post.id] = el.scrollHeight > el.clientHeight;
-      }
-    });
+                {/* Read more */}
+                {overflowingPosts[post.id] && (
+                <button className="read-more-btn" onClick={() => toggleExpand(post.id)}>
+                    {expandedPosts[post.id] ? 'Show less' : 'Read more'}
+                </button>
+                )}
 
-    setOverflowingPosts(overflowMap);
-  }, [posts]);
+                {/* Actions */}
+                <div className="post-actions">
+                <button 
+                    className={`action-btn like-btn ${post.liked ? 'liked' : ''}`}
+                    onClick={() => handleLike(post.id)}
+                >
+                    <Heart size={18} fill={post.liked ? "#ef4444" : "none"} />
+                    <span>{post.likes}</span>
+                </button>
+                
+                <button 
+                    className="action-btn comment-btn"
+                    onClick={() => toggleComments(post.id)}
+                >
+                    <MessageCircle size={18} />
+                    <span>Discussion</span>
+                </button>
+                </div>
 
-  // Infinite scroll observer
-  useEffect(() => {
-    if (!sentinelRef.current) return;
-
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          loadMorePosts();
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(sentinelRef.current);
-
-    return () => observer.disconnect();
-  }, [nextCursor, hasMore]);
-
-  if (loading) return <p>Loading explore feed...</p>;
-
-  return (
-    <div className="explore-container">
-      <h1>Explore</h1>
-
-      <CreatePost onPostCreated={loadInitialPosts} />
-
-      {posts.map(post => (
-        <div key={post.id} className="post-card">
-          {/* Header */}
-          <div className="post-header">
-            <span className="post-author">
-              {post.is_admin ? 'InterviewIQ Admin' : post.user_name || 'Anonymous'}
-            </span>
-            {post.is_admin && <span className="admin-badge">Admin</span>}
-          </div>
-
-          {/* Content */}
-          <pre
-            ref={el => (contentRefs.current[post.id] = el)}
-            className={`post-content
-              ${overflowingPosts[post.id] && !expandedPosts[post.id] ? 'collapsed' : ''}
-              ${expandedPosts[post.id] ? 'expanded' : ''}
-            `}
-          >
-            {post.content}
-          </pre>
-
-          {/* Read more */}
-          {overflowingPosts[post.id] && (
-            <button
-              className="read-more"
-              onClick={() => toggleExpand(post.id)}
-            >
-              {expandedPosts[post.id] ? 'Show less' : 'Read more'}
-            </button>
-          )}
-
-          {/* Actions */}
-          <div className="post-actions">
-            <button
-              className="like-btn"
-              onClick={() => handleLike(post.id)}
-            >
-              {post.liked ? '❤️' : '🤍'} {post.likes}
-            </button>
-          </div>
-
-          {/* Comments */}
-          <button
-            className="comments-toggle"
-            onClick={() => toggleComments(post.id)}
-          >
-            {openComments[post.id] ? 'Hide comments' : 'View comments'}
-          </button>
-
-          {openComments[post.id] && (
-            <div className="comments-wrapper">
-              <Comments postId={post.id} />
+                {/* Comments Section */}
+                {openComments[post.id] && (
+                <div className="comments-section">
+                    <Comments postId={post.id} />
+                </div>
+                )}
             </div>
-          )}
-
-          {/* Meta */}
-          <div className="post-meta">
-            {new Date(post.created_at).toLocaleString()}
-          </div>
+            ))}
         </div>
-      ))}
 
-      {/* Infinite scroll sentinel */}
-      {hasMore && (
-        <div ref={sentinelRef} style={{ height: '40px' }} />
-      )}
-
-      {loadingMore && (
-        <p style={{ textAlign: 'center', marginTop: '8px' }}>
-          Loading more…
-        </p>
-      )}
-    </div>
-  );
+        {hasMore && <div ref={sentinelRef} className="sentinel" />}
+        {loadingMore && <div className="loading-more">Loading more posts...</div>}
+        </div>
+    );
 }

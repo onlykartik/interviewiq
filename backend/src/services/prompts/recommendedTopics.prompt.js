@@ -8,8 +8,9 @@ identify 4–6 TOPICS the user should revise.
 Rules:
 - Prefer MEDIUM and HARD questions
 - Ignore vague wording
-- Topics should be general (e.g. "SQL Joins", "Java Concurrency")
+- Topics should be general 
 - Return ONLY valid JSON
+- Do NOT repeat the same topic multiple times
 - No explanation
 
 JSON format:

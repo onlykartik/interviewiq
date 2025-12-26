@@ -52,10 +52,12 @@ router.post('/signup', async (req, res) => {
 
         // ✅ Generate JWT (keep consistent)
         const token = jwt.sign(
-        { id: user.id, email: user.email },
+        { userId: user.id, email: user.email },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
         );
+
+        console.log('Signed in ', ' User_object ' ,{ id: user.id, email: user.email }, ' Token: ', token, ' User: ', user)
 
         res.status(201).json({
         success: true,

@@ -61,9 +61,7 @@ export async function getDashboardUpcoming() {
 export async function signup(name, email, password) {
     const res = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
-        headers: {
-        'Content-Type': 'application/json'
-        },
+        headers: getHeaders(),
         body: JSON.stringify({ name, email, password })
     });
 
@@ -71,8 +69,6 @@ export async function signup(name, email, password) {
 }
 
 export async function addInterview(interviewData) {
-    const token = localStorage.getItem('token');
-
     const res = await fetch(`${API_BASE}/interviews`, {
         method: 'POST',
         headers: getHeaders(),
@@ -217,5 +213,21 @@ export async function getExplorePostsPagenation(cursor = null) {
 
     console.log(res)
 
+    return res.json();
+}
+
+export async function getUserProfile() {
+    const res = await fetch(`${API_BASE}/users/profile`, {
+        headers: getHeaders()
+    });
+    return res.json();
+}
+
+export async function saveUserProfile(profile) {
+    const res = await fetch(`${API_BASE}/users/profile`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(profile)
+    });
     return res.json();
 }

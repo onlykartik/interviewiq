@@ -42,4 +42,46 @@ router.put('/me', auth, async (req, res) => {
     }
 });
 
+// GET profile
+router.get('/profile', auth, async (req, res) => {
+    const result = await pool.query(
+        `SELECT * FROM user_profile WHERE user_id = $1`,
+        [req.user.id]
+    );
+
+    res.json({
+        success: true,
+        data: result.rows[0] || null
+    });
+    });
+
+    // CREATE / UPDATE profile
+router.post('/profile', auth, async (req, res) => {
+    const { primary_role, experience_level, preferred_domains, target_companies } = req.body;
+
+    await pool.query(
+        `
+        INSERT INTO user_profile
+        (user_id, primary_role, experience_level, preferred_domains, target_companies)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (user_id)
+        DO UPDATE SET
+        primary_role = EXCLUDED.primary_role,
+        experience_level = EXCLUDED.experience_level,
+        preferred_domains = EXCLUDED.preferred_domains,
+        target_companies = EXCLUDED.target_companies,
+        updated_at = now()
+        `,
+        [
+        req.user.id,
+        primary_role,
+        experience_level,
+        preferred_domains,
+        target_companies
+        ]
+    );
+
+    res.json({ success: true });
+});
+
 module.exports = router;

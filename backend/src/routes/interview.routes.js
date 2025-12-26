@@ -6,9 +6,11 @@ const auth = require('../middleware/auth');
 // POST /api/interviews
 router.post('/', auth, async (req, res) => {
     try {
+        
         const userId = req.user.id; // ✅ FROM JWT
 
         const { company_id, role, interview_date, result } = req.body;
+        console.log('req.user ',req.user, 'req.body ', req.body )
         // Validation
         if (!company_id || !role || !interview_date) {
         return res.status(400).json({
