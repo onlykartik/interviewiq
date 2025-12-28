@@ -9,26 +9,69 @@ router.post('/', auth, async (req, res) => {
         
         const userId = req.user.id; // ✅ FROM JWT
 
-        const { company_id, role, interview_date, result } = req.body;
+        const {
+  company_id,
+  role,
+  interview_date,
+  interview_type, // 'upcoming' | 'past'
+  result,
+  description
+} = req.body;
+
         console.log('req.user ',req.user, 'req.body ', req.body )
+
         // Validation
-        if (!company_id || !role || !interview_date) {
-        return res.status(400).json({
-            success: false,
-            message: 'company_id, role and interview_date are required'
-        });
-        }
+if (!interview_type || !['upcoming', 'past'].includes(interview_type)) {
+  return res.status(400).json({
+    success: false,
+    message: 'interview_type must be upcoming or past'
+  });
+}
+
+// Upcoming interview rules
+if (interview_type === 'upcoming' && result) {
+  return res.status(400).json({
+    success: false,
+    message: 'Upcoming interview cannot have result'
+  });
+}
+
+// Past interview rules
+if (interview_type === 'past' && !result) {
+  return res.status(400).json({
+    success: false,
+    message: 'Past interview must have result'
+  });
+}
+
         const insertQuery = `
-        INSERT INTO interviews (user_id, company_id, role, interview_date, result)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, company_id, role, interview_date, result
+        INSERT INTO interviews (
+        user_id,
+        company_id,
+        role,
+        interview_date,
+        interview_type,
+        result,
+        description
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING
+            id,
+            company_id,
+            role,
+            interview_date,
+            interview_type,
+            result,
+            description
         `;
         const values = [
         userId,
         company_id,
         role.trim(),
         interview_date,
-        result || 'Pending'
+        interview_type,
+        interview_type === 'upcoming' ? null : result,
+        description || null
         ];
 
         const resultDb = await pool.query(insertQuery, values);
@@ -63,7 +106,9 @@ router.get('/', auth, async (req, res) => {
             i.id,
             i.role,
             i.interview_date,
+            i.interview_type,
             i.result,
+            i.description,
             c.id AS company_id,
             c.name AS company_name
         FROM interviews i
@@ -130,7 +175,77 @@ router.get('/:id/questions',auth, async (req, res) => {
     }
 });
 
+// GET /api/interviews/:id
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const interviewId = req.params.id;
+    const userId = req.user.id;
 
+    const result = await pool.query(
+      `
+      SELECT
+        i.id,
+        i.role,
+        i.interview_date,
+        i.result,
+        i.interview_type,
+        c.name AS company_name
+      FROM interviews i
+      JOIN companies c ON c.id = i.company_id
+      WHERE i.id = $1 AND i.user_id = $2
+      `,
+      [interviewId, userId]
+    );
 
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+// PATCH /api/interviews/:id/mark-past
+router.patch('/:id/mark-past', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const interviewId = req.params.id;
+
+    const result = await pool.query(
+      `
+      UPDATE interviews
+      SET interview_type = 'past'
+      WHERE id = $1
+        AND user_id = $2
+        AND interview_type = 'upcoming'
+      RETURNING id, interview_type
+      `,
+      [interviewId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Interview already marked as past or not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
 
 module.exports = router;

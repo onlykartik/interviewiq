@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GoogleLogin from '../components/GoogleLogin';
-import { signup } from '../api';
+import { signup,loginUser } from '../api';
+
 import { Mail, Lock, User, ArrowRight, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
@@ -16,28 +17,30 @@ export default function Login() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
+    
     async function handleLogin(e) {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            const res = await fetch('http://localhost:8080/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            const token = data.token;
-            if (!res.ok || !token) {
-                alert(data.message || 'Login failed');
-                return;
-            }
-            login(token);
-            navigate('/');
-        } catch (err) {
-            alert('Login error');
-        } finally {
-            setLoading(false);
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+        const data = await loginUser(email, password);
+        const token =
+        data.token ||
+        data.data?.token ||
+        data.accessToken;
+
+        if (!token) {
+        alert('Login failed');
+        return;
         }
+
+        login(token);
+        navigate('/');
+    } catch (err) {
+        alert(err.message || 'Login error');
+    } finally {
+        setLoading(false);
+    }
     }
 
     async function handleSignup(e) {

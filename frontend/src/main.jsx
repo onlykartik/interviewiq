@@ -19,6 +19,7 @@ import AddInterview from './pages/AddInterview';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
+import InterviewPrepare from './pages/InterviewPrepare';
 
 function Layout({ children }) {
   const { isAuthenticated } = useAuth();
@@ -59,6 +60,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/interviews/:id/prepare" element={ <ProtectedRoute> <InterviewPrepare /> </ProtectedRoute>} />
 
             <Route
               path="/interviews"

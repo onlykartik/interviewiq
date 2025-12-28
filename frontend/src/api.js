@@ -31,6 +31,7 @@ export async function getInterviewQuestions(interviewId) {
 }
 
 export async function addQuestion(payload) {
+    console.log('adding question front end ',payload)
     const res = await fetch(`${API_BASE}/questions`, {
     method: 'POST',
     headers: getHeaders(),
@@ -230,4 +231,63 @@ export async function saveUserProfile(profile) {
         body: JSON.stringify(profile)
     });
     return res.json();
+}
+
+// GET single interview by ID
+export async function getInterviewById(interviewId) {
+    const res = await fetch(`${API_BASE}/interviews/${interviewId}`, {
+        headers: getHeaders()
+    });
+
+    return res.json();
+}
+
+export async function getInterviewPreparation(id) {
+    const res = await fetch(`${API_BASE}/interviews/${id}/prepare`, {
+        headers: getHeaders()
+    });
+    return res.json();
+}
+
+export async function generateInterviewPreparation(id, payload) {
+    const res = await fetch(`${API_BASE}/interviews/${id}/prepare`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload)
+    });
+    return res.json();
+}
+
+
+export async function markInterviewAsPast(interviewId) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(
+        `${API_BASE}/interviews/${interviewId}/mark-past`,
+        {
+        method: 'PATCH',
+        headers: getHeaders()
+        }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to mark interview as past');
+    }
+
+    return data;
+}
+
+export async function loginUser(email, password) {
+    const res = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || 'Login failed');
+    }
+
+  return data; // contains token
 }

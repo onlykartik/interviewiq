@@ -24,6 +24,8 @@ const aiTestRoutes = require('./routes/ai.test.routes');
 const aiAnalysisRoutes = require('./routes/ai.analysis.routes');
 const aiProfileRoutes = require('./routes/ai.profile.routes');
 const quizRoutes = require('./routes/quiz.routes');
+const interviewPrepareRoutes = require('./routes/interviewPrepare.routes');
+
 
 //Connect routes
 app.use('/api/dashboard', dashboardRoutes);
@@ -37,7 +39,7 @@ app.use('/api/ai', aiTestRoutes);
 app.use('/api/ai', aiAnalysisRoutes);
 app.use('/api/ai', aiProfileRoutes);
 app.use('/api/quiz', quizRoutes);
-
+app.use('/api/interviews', interviewPrepareRoutes);
 
 app.get('/', (req, res) => {
     res.send('InterviewIQ API is running');
