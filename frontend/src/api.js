@@ -123,7 +123,7 @@ export async function createExplorePost(payload) {
 
 export async function toggleLike(postId) {
     const res = await fetch(
-        `http://localhost:8080/api/explore/${postId}/like`,
+        `${API_BASE}/explore/${postId}/like`,
         {
         method: 'POST',
         headers: getHeaders()
@@ -280,7 +280,7 @@ export async function markInterviewAsPast(interviewId) {
 }
 
 export async function loginUser(email, password) {
-    const res = await fetch(  `${API_BASE}/api/auth/login`, {
+    const res = await fetch(  `${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
