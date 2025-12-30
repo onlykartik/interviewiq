@@ -1,0 +1,12 @@
+
+# Deployment instruction manual
+# Run my backend using Node.js version 16.
+# App Engine installs Node.js for you
+# Your app must be compatible with Node 16
+runtime: nodejs20
+
+# This defines the App Engine service name.
+# Your backend will be deployed as: https://server-dot-<project-id>.appspot.com
+service : server 
+
+env: standard

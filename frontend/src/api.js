@@ -1,6 +1,7 @@
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
 function getHeaders() {
+    console.log('API:', import.meta.env.VITE_API_BASE_URL);
     const token = localStorage.getItem('token');
     console.log('Front end get header ',token)
     return {
@@ -279,7 +280,7 @@ export async function markInterviewAsPast(interviewId) {
 }
 
 export async function loginUser(email, password) {
-    const res = await fetch('http://localhost:8080/api/auth/login', {
+    const res = await fetch(  `${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

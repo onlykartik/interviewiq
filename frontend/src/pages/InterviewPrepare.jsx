@@ -183,7 +183,6 @@ const styles = {
   role: { color: '#475569', marginTop: 4 },
   date: { fontSize: 13, color: '#64748b', marginTop: 4 },
 
-  sectionTitle: { fontSize: 16, fontWeight: 700, marginBottom: 12 },
 
   input: {
     width: '100%',
